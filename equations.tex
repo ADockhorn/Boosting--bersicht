@@ -1,0 +1,223 @@
+\documentclass[a4paper,12pt]{scrartcl}
+
+\usepackage{quickreference}
+\usepackage{tikzconfig}
+\usepackage{cleveref}
+
+
+\newtheorem{definition}{Definition}
+
+\title{Boosting\\ - Formelübersicht -}
+\author{Alexander Dockhorn\\
+\href{mailto:a.dockhorn@qmul.ac.uk}{a.dockhorn@qmul.ac.uk}}
+
+
+\begin{document}
+
+
+\maketitle
+
+
+\begin{abstract}
+
+Diese kurze Übersicht umfässt die in der Lehrprobe zum Thema Boosting verwendeten Formelzeichen, Gleichungen und Algorithmen. 
+
+Da diese Übersicht in ihrem Umfang begrenzt ist, möchte ich Sie zudem auf eine vergleichbare Übersicht zur Vorlesung Computational Intelligence in Games (\url{https://github.com/ADockhorn/CIG-Overview/blob/master/equations.pdf}) verweisen, welche ich im Rahmen meiner Vorlesungsvertretung an der Otto-von-Guericke Universität Magdeburg gemeinsam mit Studierenden erstellte.
+
+Falls Sie Ideen zur Verbesserung dieser Übersicht haben, würde ich mich über eine E-Mail oder einen Pull-Request sehr freuen.
+
+
+
+\end{abstract}
+
+
+\listofequationfloat
+\listofalgorithms
+
+\newpage
+\section{Boosting}
+
+
+\begin{tabular}{C{0.1\textwidth}p{0.3\textwidth}p{0.6\textwidth}}
+	\toprule
+	Symbol & Name &  Beschreibung \\
+	\midrule
+	$X$ & Eingabedaten & Menge der zu klassifizierenden Datenpunkte, \mbox{$x_i \in X \subset \mathbb{R}^n$}\\
+	$y$ & Ausgabedaten & Vektor der erwartenden Ausgaben, $y_i \in {-1, 1}$ \\
+	$(x_i, y_i)$ & Trainingsbeispiel & ein Trainingsbeispiel \\ 
+	$D$ & Trainingsdaten & Menge an Trainingbeispielen $\lbrace (x_i, y_i)\rbrace^n$\\
+	$t$ & Zeitpunkt & Zeitpunkt des Trainingsprozesses bzw. Anzahl von Klassifikatoren im Ensemble\\
+	$h_t$ & Klassifikator & einzelner Klassifikator, welcher zur Ensemblebildung verwendet wird\\
+	$h_t(x)$ & Ausgabe des Klassifikators & dem Datenpunkt $x$ zugeordnetes Label, $h_t(x)\in {-1, 1}$ \\
+	$\alpha_t$ & Gewicht \mbox{eines Klassifikators} & Gewichtung zur Aggregation von Klassifikatoren des Ensembles\\
+	$H_t(x)$ & Ensemble & Ensemble welches mehrere Klassifikatoren aggregiert\\
+	$\mathcal{L}(H_t\vert y)$ & Fehlerfunktion & Funktion zum Messen des Ensemblefehlers\\
+	$I(x \neq y)$ & Indikatorfunktion & Verwendet zur Bewertung des Ensemblefehlers bezüglich der erwünschten Klassifikation $y$ (siehe Gleichung \ref{eq:indikator})\\
+	$\varepsilon$ & gewichteter Fehler & findet Verwendung in der Herleitung von Adaboost\\
+	\bottomrule
+\end{tabular}
+
+\subsection{Adaptive Boosting (Adaboost)}
+
+\begin{equationfloat}[!h]
+	\caption{Exponentieller Fehler über die gewichteten Trainingsdaten}
+	\begin{equation}
+		\mathcal{L}(H_t~\vert~y) =\sum_i^{\vert D\vert} w_i^t e^{-\frac{1}{2}y_i H_t(x_i)}
+	\end{equation}
+\end{equationfloat}
+
+\begin{equationfloat}[!h]
+	\caption{Indikatorfunktion zur Erkennung falsch klassifizierter Trainingsbeispiele}
+	\label{eq:indikator}
+	\begin{equation}
+		I(x \neq y) = \begin{cases} 1 &, x \neq y\\ 0 & ,\mbox{sonst} \end{cases}
+	\end{equation}
+\end{equationfloat}
+
+
+\begin{equationfloat}[!h]
+	\caption{Ausgabe des Ensembles}
+	\label{eq:indikator}
+	\begin{equation}
+			H_t(x) =  \sum_{i=1}^t \alpha_i h_i(x) 
+	\end{equation}
+\end{equationfloat}
+
+\begin{equationfloat}[!h]
+	\caption{Label Zuweisung des Ensembles}
+	\label{eq:indikator}
+	\begin{equation}
+		H_t(x) = \text{sign} \Big( \sum_{i=1}^t \alpha_i h_i(x) \Big)
+	\end{equation}
+\end{equationfloat}
+
+
+\begin{equationfloat}[!h]
+	\caption{Herleitung zur Wahl des optimalen Klassifikators}
+	\begin{align*}
+	 & \mathcal{L}(H_{t+1}\vert y) 
+	 &
+	 \\
+	 & = \sum_i^{\vert D\vert} w_i^t e^{-\frac{1}{2} y_i \alpha_{t+1} h_{t+1}(x_i)}
+	 && \big\vert~\sum_{alle} = \textcolor{Brown}{\sum_{falsch}} + \textcolor{ForestGreen}{\sum_{richtig}}
+	 \\
+	 & = \textcolor{Brown}{\underbrace{\sum_{i: h_{t+1}(x_i) \neq y_i}^{\vert D\vert} w_i^t e^{-\frac{1}{2} y_i \alpha_{t+1} h_{t+1}(x_i)}}_{\text{falsch klassifizierte Punkte}}} + \textcolor{ForestGreen}{\underbrace{\sum_{i: h_{t+1}(x_i) = y_i}^{\vert D\vert} w_i^t e^{-\frac{1}{2} y_i \alpha_{t+1} h_{t+1}(x_i)}}_{\text{richtig klassifizierte Punkte}}}
+	 && \big\vert~ y_i, h(x_i) \in \{-1, +1 \}
+	 \\
+	 & = \textcolor{Brown}{\sum_{i: h_{t+1}(x_i) \neq y_i}^{\vert D\vert} w_i^t e^{\frac{\alpha_{t+1}}{2}}} + \textcolor{ForestGreen}{\sum_{i: h_{t+1}(x_i) = y_i}^{\vert D\vert} w_i^t e^{-\frac{\alpha_{t+1}}{2}}}
+	 && \big\vert~  I(x \neq y) = \begin{cases} 1 &, x \neq y\\ 0 & ,\mbox{sonst} \end{cases}\\
+	 & 
+	 \\
+	 & = \textcolor{Brown}{e^{\frac{\alpha_{t+1}}{2}} \sum_{i}^{\vert D\vert} w_i^t I(h_{t+1}(x_i) \neq y_i)} 
+	 \\
+	 & \qquad + \textcolor{ForestGreen}{\underbrace{e^{-\frac{\alpha_{t+1}}{2}}\sum_i^{\vert D\vert} w_i^t}_{\text{alle Punkte}} - 
+	 	\underbrace{e^{-\frac{\alpha_{t+1}}{2}}\sum_{i}^{\vert D\vert} w_i^t I(h_{t+1}(x_i) \neq y_i)}_{\text{falsch  klassifizierte Punkte}}}
+ 	 && \big\vert~\textcolor{ForestGreen}{\sum_{richtig}} = \sum_{alle} - \textcolor{Brown}{\sum_{falsch}}
+ 	 \\
+ 	 & = (e^{\frac{\alpha_{t+1}}{2}} - e^{-\frac{\alpha_{t+1}}{2}}) \sum_{i}^{\vert D\vert} w_i^t I(h_{t+1}(x_i), y_i) + e^{-\frac{\alpha_{t+1}}{2}}\sum_i^{\vert D\vert} w_i^t
+	\end{align*}
+	
+	Wir wählen zu jedem Zeitpunkt den Klassifikator, welcher den exponentiellen Fehler über alle Trainingsbeispiele minimiert. Die Herleitung zeigt, dass die optimale Wahl des Klassifikators lediglich abhängig von der Minimierung des gewichteten Fehlers ist, da alle anderen Komponenten der Funktion konstant sind.
+	
+	\textbf{Resultat:} wähle den Klassifikator zur Minimierung des gewichteten Fehlers
+\end{equationfloat}
+
+
+
+\begin{equationfloat}[!h]
+	\caption{Herleitung zur Wahl des optimalen Klassifikatorgewichts}
+	
+	Nach der Wahl des optimalen Klassifikators $h_{t+1}$ bestimmen wir dessen Gewicht, indem wir die Fehlerfunktion nach $\alpha$ ableiten.
+	
+	\begin{align*}
+		\mathcal{L}(H_{t+1}\vert y) & = (e^{\frac{\alpha_{t+1}}{2}} - e^{-\frac{\alpha_{t+1}}{2}}) \sum_{i}^{\vert D\vert} w_i^t I(h_{t+1}(x_i)\neq y_i) - e^{-\frac{\alpha_{t+1}}{2}}\underbrace{\sum_i^{\vert D\vert} w_i^t}_{=1}
+		\\
+		\frac{d\mathcal{L}(H_{t+1}\vert y)}{d\alpha}&= \frac{1}{2} (e^{\frac{\alpha_{t+1}}{2}} + e^{-\frac{\alpha_{t+1}}{2}}) \sum_{i}^{\vert D\vert} w_i^t I(h_{t+1}(x_i)\neq y_i) -\frac{1}{2} e^{-\frac{\alpha_{t+1}}{2}}
+	\end{align*}
+	
+	Zur Vereinfachung substituieren wir $\varepsilon = \sum_{i}^{\vert D\vert} w_i^t I(h_{t+1}(x_i)\neq y_i)$
+	
+	\begin{align*}
+		\frac{d\mathcal{L}(H_{t+1}\vert y)}{d\alpha}&= \frac{1}{2} (e^{\frac{\alpha_{t+1}}{2}} + e^{-\frac{\alpha_{t+1}}{2}}) \varepsilon -\frac{1}{2} e^{-\frac{\alpha_{t+1}}{2}}
+	\end{align*}
+	
+	Suche den Extrempunkt bezüglich $\alpha$, indem die Ableitung gleich 0 gesetzt wird. 
+	
+	\begin{align*}
+		\frac{1}{2} (e^{\frac{\alpha_{t+1}}{2}} + e^{-\frac{\alpha_{t+1}}{2}}) \varepsilon -\frac{1}{2} e^{-\frac{\alpha_{t+1}}{2}}
+		& = 0
+		&& \big\vert :\frac{1}{2}
+		\\
+		e^{\frac{\alpha_{t+1}}{2}} \varepsilon + e^{-\frac{\alpha_{t+1}}{2}} \varepsilon - e^{-\frac{\alpha_{t+1}}{2}} &= 0 
+		&& \big\vert - (e^{-\frac{\alpha_{t+1}}{2}} \varepsilon -e^{-\frac{\alpha_{t+1}}{2}})
+		\\
+		e^{\frac{\alpha_{t+1}}{2}} \varepsilon
+		& =e^{-\frac{\alpha_{t+1}}{2}} - e^{-\frac{\alpha_{t+1}}{2}} \varepsilon
+		&&
+		\\
+		e^{\frac{\alpha_{t+1}}{2}} \varepsilon 
+		& =e^{-\frac{\alpha_{t+1}}{2}} (1-\varepsilon) 
+		&&  \big\vert\ln; \qquad \ln(xy) = \ln(x) + \ln(y)
+		\\
+		\frac{\alpha_{t+1}}{2} + \ln\left(\varepsilon\right) 
+		& = -\frac{\alpha_{t+1}}{2} + \ln\left(1-\varepsilon\right)
+		&& \big\vert + \frac{\alpha_{t+1}}{2} - \ln{\varepsilon}
+		\\
+		\alpha_{t+1}
+		& =\ln(1-\varepsilon) - \ln(\varepsilon) 
+		&& \big\vert \ln(x) - \ln(y) = \ln(\frac{x}{y})
+		\\
+		\alpha_{t+1} 
+		& =\ln\left(\frac{1-\varepsilon}{\varepsilon} \right)
+	\end{align*}
+	
+	\textbf{Resultat:} die Schrittweite ist abhängig von dem gewichteten Fehler des Klassifikators
+\end{equationfloat}	
+
+
+
+\begin{equationfloat}[!h]
+	\caption{Herleitung zur Aktualisierung der Trainingsdatengewichtung}
+	\begin{align*}
+		\mathcal{L}(H_{t+1}\vert y)
+		&= \sum_i^{\vert D\vert} e^{-\frac{1}{2} y_i H_{t+1}(x_i)}
+		&& \big\vert~H_{t+1}(x_i) = \color{red}{H_t(x_i)} + \color{blue}{\alpha_{t+1} h_{t+1}(x_i)}
+		\\
+		& = \sum_i^{\vert D\vert} e^{\color{red}{-\frac{1}{2} y_i H_t(x_i)} \color{blue}{- \frac{1}{2} y_i \alpha_{t+1} h_{t+1}(x_i)}}
+		&& \big\vert~ e^{a+b} = e^a e^b
+		\\
+		& = \sum_i^{\vert D\vert} \color{red}{e^{-\frac{1}{2} y_i H_t(x_i)}} \color{blue}{e^{-\frac{1}{2} y_i \alpha_{t+1} h_{t+1}(x_i)}}
+		&& \big\vert~w_i^t = e^{-\frac{1}{2} y_i H_t(x_i)}
+		\\
+		& = \sum_i^{\vert D\vert} \color{red}{w_i^t} \color{blue}{e^{-\frac{1}{2} y_i \alpha_{t+1} h_{t+1}(x_i)}}
+		&& \big\vert~\Rightarrow w_i^0 = \frac{1}{\vert D \vert}; \quad w_i^{t+1} = w_i^{t} \cdot e^{-\frac{1}{2} \alpha_t y_i h_t(x_i)}
+	\end{align*}
+	\textbf{Resultat:}  das Gewicht eines Datenpunktes ist proportional zum Fehler des aktuellen Ensembles. Ausgehend von einer Gleichverteilung der Trainingsdatengewichtung zu Beginn des Trainingsprozesses, kann eine rekursive Aktualisierung der Gewichte bestimmt werden.
+\end{equationfloat}	
+
+
+
+
+\begin{algorithm}[h]
+	\vskip0.5em
+	\DontPrintSemicolon
+	\KwIn{Trainingsdaten $D$, Anzahl an Zeitschritten $T$}
+	\vskip1.0em
+	Setze $w_i^0 = \frac{1}{\vert D\vert}$ für alle Trainingsbeispiele in $D$\\[0.5em]
+	Initialisiere $H_0$ als leeres Ensemble\\
+	\vskip1.0em
+	\For{$t\gets0$ \KwTo $T$}{
+		$h_{t+1} \leftarrow$ Lerne Klassifikator zur Minimierung des gewichteten Fehlers\\[0.5em]
+		Bestimme den gewichteten Fehler $\varepsilon=\sum_{i}^{\vert D\vert} w_i^t I(h_{t+1}(x_i)\neq y_i)$\\[0.5em]
+		$a_{t+1} \leftarrow \ln\left(\frac{1-\varepsilon}{\varepsilon}\right)$   \\[0.5em]
+		Füge $a_{t+1}h_{t+1}$ dem Ensemble $H_t$ hinzu.\\[0.5em]
+		$w_i^{t+1} \leftarrow w_i^{t} \cdot e^{-\frac{1}{2} \alpha_t y_i h_t(x_i)}$\\
+	}
+	\vskip1.0em
+	\KwOut{Ensemble Klassifikator $H_T$}    
+	\vskip0.5em
+	\caption[Adaboost]{Adaboost: \textit{(Hinweis: Der von Freund und Schapire vorgestellte Adaboost Algorithmus verwendet Entscheidungssstümpfe als Klassifikatoren. Es können auch andere Klassifikatoren verwendet werden, insofern ihre Ausgabe auf die Menge $\{-1, 1\}$ beschränkt bleibt und sie bezüglich des gewichteten Fehlers optimiert werden können.}}
+\end{algorithm}
+
+
+\end{document}
